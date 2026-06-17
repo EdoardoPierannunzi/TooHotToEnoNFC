@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NFC Card – Saldo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;
+  --text:#1a1a1a;
+  --text2:#666;
+  --card-color:#1a1a1a;
+  --radius:20px;
+}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  overflow:hidden;
+}
+
+body::before, body::after {
+  content:'';
+  position:fixed;
+  border-radius:50%;
+  filter:blur(80px);
+  opacity:.4;
+  pointer-events:none;
+}
+body::before{ width:400px;height:400px; top:-100px;right:-100px; background:var(--card-color,#1a1a1a); }
+body::after{ width:300px;height:300px; bottom:-80px;left:-60px; background:var(--card-color,#1a1a1a); opacity:.2; }
+
+.screen{
+  display:none;flex-direction:column;align-items:center;text-align:center;
+  gap:24px;max-width:400px;width:100%;animation:fade-in .4s ease;
+}
+.screen.active{display:flex}
+@keyframes fade-in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
+.tap-circle{
+  width:160px;height:160px;border-radius:50%;background:#fff;
+  box-shadow:0 0 0 0 rgba(0,0,0,.15);
+  display:flex;align-items:center;justify-content:center;font-size:4rem;
+  animation:tap-pulse 2.5s ease-in-out infinite;cursor:pointer;border:none;outline:none;
+}
+@keyframes tap-pulse{
+  0%{box-shadow:0 0 0 0 rgba(0,0,0,.15)}
+  70%{box-shadow:0 0 0 30px rgba(0,0,0,0)}
+  100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}
+}
+.tap-circle.listening{ animation:tap-pulse-active 1.4s ease-in-out infinite; }
+@keyframes tap-pulse-active{
+  0%{box-shadow:0 0 0 0 rgba(0,180,90,.35)}
+  70%{box-shadow:0 0 0 36px rgba(0,180,90,0)}
+  100%{box-shadow:0 0 0 0 rgba(0,180,90,0)}
+}
+.tap-label{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.05em;color:var(--text)}
+.tap-sub{font-size:.9rem;color:var(--text2)}
+
+.spinner{
+  width:48px;height:48px;border:4px solid rgba(0,0,0,.1);
+  border-top-color:var(--text);border-radius:50%;animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.result-card{
+  background:#fff;border-radius:24px;padding:36px 32px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.12);position:relative;overflow:hidden;
+}
+.result-card::before{ content:'';position:absolute;top:0;left:0;right:0;height:6px;background:var(--card-color,#1a1a1a); }
+.result-card-dot{ width:14px;height:14px;border-radius:50%;background:var(--card-color,#1a1a1a);margin:0 auto 16px; }
+.result-card-name{ font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:.04em;margin-bottom:4px;color:var(--card-color,#1a1a1a); }
+.result-card-label{ font-size:.8rem;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:20px; }
+.result-card-balance{ font-family:'Bebas Neue',sans-serif;font-size:5rem;line-height:1;color:var(--text);margin-bottom:4px; }
+.result-card-currency{ font-size:.85rem;color:var(--text2);margin-bottom:24px; }
+.result-card-updated{ font-size:.75rem;color:var(--text2);padding-top:16px;border-top:1px solid #f0f0f0; }
+
+.btn-back{
+  background:transparent;border:2px solid rgba(0,0,0,.15);border-radius:50px;
+  padding:12px 28px;font-family:'DM Sans',sans-serif;font-size:.9rem;
+  color:var(--text2);cursor:pointer;transition:all .2s;
+}
+.btn-back:hover{border-color:var(--text);color:var(--text)}
+
+.error-icon{font-size:3.5rem}
+.error-title{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.04em}
+.error-sub{font-size:.9rem;color:var(--text2)}
+
+.fallback-box{ background:#fff;border-radius:var(--radius);padding:24px;width:100%; }
+.fallback-box p{color:var(--text2);font-size:.85rem;margin-bottom:12px}
+.input-row{display:flex;gap:10px;flex-wrap:wrap}
+.fi{
+  flex:1;border:1.5px solid #ddd;border-radius:10px;padding:12px 14px;
+  font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;min-width:120px;
+}
+.fi:focus{border-color:#1a1a1a}
+.btn-check{
+  background:#1a1a1a;color:#fff;border:none;border-radius:10px;padding:12px 20px;
+  font-family:'DM Sans',sans-serif;cursor:pointer;font-size:.9rem;white-space:nowrap;
+}
+
+.setup-banner{
+  position:fixed;top:0;left:0;right:0;background:#1a1a1a;color:#fff;
+  font-size:.75rem;padding:8px 16px;text-align:center;z-index:999;
+}
+.setup-banner code{background:#ffffff20;padding:2px 6px;border-radius:4px}
+
+.config-box{
+  background:#fff;border-radius:var(--radius);padding:24px;width:100%;text-align:left;
+}
+.config-box label{font-size:.78rem;color:var(--text2);display:block;margin-bottom:6px}
+.config-box input{
+  width:100%;border:1.5px solid #ddd;border-radius:10px;padding:12px 14px;
+  font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;margin-bottom:14px;
+}
+.config-box input:focus{border-color:#1a1a1a}
+</style>
+</head>
+<body>
+
+<!-- Banner se l'URL API non è configurato -->
+<div class="setup-banner hidden" id="setup-banner">
+  ⚠️ Configura l'URL della tua Apps Script Web App qui sotto
+</div>
+
+<!-- Config (solo se manca l'URL) -->
+<div class="screen" id="screen-config">
+  <div class="config-box">
+    <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;margin-bottom:16px">⚙️ Configurazione iniziale</h3>
+    <label>URL della Web App Apps Script (termina con /exec)</label>
+    <input type="text" id="cfg-url" placeholder="https://script.google.com/macros/s/XXXX/exec">
+    <button class="btn-check" style="width:100%" onclick="saveConfig()">Salva e continua</button>
+  </div>
+</div>
+
+<!-- Tap to scan -->
+<div class="screen" id="screen-tap">
+  <button class="tap-circle" id="tap-btn" onclick="startScan()">📡</button>
+  <div class="tap-label" id="tap-label">Avvicina la carta</div>
+  <div class="tap-sub" id="tap-sub">Tocca per attivare il lettore NFC</div>
+  <div id="fallback-section" style="display:none;width:100%">
+    <div class="fallback-box">
+      <p>Inserisci manualmente l'ID carta:</p>
+      <div class="input-row">
+        <input type="text" class="fi" id="manual-id" placeholder="ID carta…">
+        <button class="btn-check" onclick="processManual()">Cerca</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div class="screen" id="screen-loading">
+  <div class="spinner"></div>
+  <p style="color:var(--text2)">Ricerca carta…</p>
+</div>
+
+<!-- Result -->
+<div class="screen" id="screen-result">
+  <div class="result-card" id="result-card">
+    <div class="result-card-dot"></div>
+    <div class="result-card-name" id="res-name">—</div>
+    <div class="result-card-label">Saldo disponibile</div>
+    <div class="result-card-balance" id="res-balance">0.00</div>
+    <div class="result-card-currency">Euro</div>
+    <div class="result-card-updated" id="res-updated"></div>
+  </div>
+  <button class="btn-back" onclick="goBack()">← Scansiona un'altra carta</button>
+</div>
+
+<!-- Error -->
+<div class="screen" id="screen-error">
+  <div class="error-icon">❓</div>
+  <div class="error-title">Carta non trovata</div>
+  <div class="error-sub">Questa carta non è registrata nel sistema.</div>
+  <button class="btn-back" onclick="goBack()">← Riprova</button>
+</div>
+
+<!-- Errore di rete -->
+<div class="screen" id="screen-network-error">
+  <div class="error-icon">📡</div>
+  <div class="error-title">Errore di connessione</div>
+  <div class="error-sub" id="network-error-detail">Impossibile contattare il server.</div>
+  <button class="btn-back" onclick="goBack()">← Riprova</button>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  CONFIGURAZIONE
+//  Sostituisci direttamente qui sotto con l'URL della tua Web App
+//  (più comodo che configurarlo ogni volta dal telefono)
+// ════════════════════════════════════════════════════════════
+let API_URL = ''; // es: 'https://script.google.com/macros/s/AKfycbx.../exec'
+
+const STORAGE_KEY = 'nfc_api_url';
+
+function getApiUrl() {
+  return API_URL || localStorage.getItem(STORAGE_KEY) || '';
+}
+
+function saveConfig() {
+  const url = document.getElementById('cfg-url').value.trim();
+  if (!url) return;
+  localStorage.setItem(STORAGE_KEY, url);
+  API_URL = url;
+  showScreen('screen-tap');
+  initNFCButton();
+}
+
+// ── Init ──────────────────────────────────────────────────
+let nfcReader = null;
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (!getApiUrl()) {
+    showScreen('screen-config');
+  } else {
+    showScreen('screen-tap');
+    initNFCButton();
+  }
+});
+
+function initNFCButton() {
+  if (!('NDEFReader' in window)) {
+    document.getElementById('fallback-section').style.display = 'block';
+    document.getElementById('tap-sub').textContent = 'NFC non supportato su questo browser/dispositivo';
+  }
+}
+
+async function startScan() {
+  if (!('NDEFReader' in window)) {
+    document.getElementById('fallback-section').style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('tap-btn');
+  const sub = document.getElementById('tap-sub');
+  try {
+    nfcReader = new NDEFReader();
+    await nfcReader.scan();
+    btn.classList.add('listening');
+    sub.textContent = 'In ascolto… avvicina la carta';
+    nfcReader.onreading = e => lookupCard(e.serialNumber.toUpperCase());
+    nfcReader.onreadingerror = () => {
+      sub.textContent = 'Errore di lettura, riprova';
+    };
+  } catch (err) {
+    sub.textContent = 'NFC non disponibile: ' + err.message;
+    document.getElementById('fallback-section').style.display = 'block';
+  }
+}
+
+function processManual() {
+  const id = document.getElementById('manual-id').value.trim().toUpperCase();
+  if (!id) return;
+  lookupCard(id);
+}
+
+// ── Chiamata API verso Apps Script ──────────────────────────
+async function callApi(params) {
+  const url = getApiUrl();
+  if (!url) { showScreen('screen-config'); return null; }
+
+  const qs = new URLSearchParams(params).toString();
+  const res = await fetch(url + '?' + qs, { method: 'GET' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return await res.json();
+}
+
+async function lookupCard(cardId) {
+  showScreen('screen-loading');
+  try {
+    const data = await callApi({ api: 'getCard', cardId });
+    if (!data.success || !data.card) {
+      showScreen('screen-error');
+      return;
+    }
+    const card = data.card;
+    applyCardColor(card.color || '#1a1a1a');
+    document.getElementById('res-name').textContent    = card.name;
+    document.getElementById('res-balance').textContent = Number(card.balance).toFixed(2);
+    document.getElementById('res-updated').textContent =
+      'Ultimo aggiornamento: ' + new Date(card.updatedAt).toLocaleString('it-IT');
+    showScreen('screen-result');
+  } catch (err) {
+    document.getElementById('network-error-detail').textContent =
+      'Dettaglio: ' + err.message + '. Verifica URL API e connessione.';
+    showScreen('screen-network-error');
+  }
+}
+
+function applyCardColor(color) {
+  document.documentElement.style.setProperty('--card-color', color);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goBack() {
+  document.documentElement.style.setProperty('--card-color', '#1a1a1a');
+  const btn = document.getElementById('tap-btn');
+  if (btn) btn.classList.remove('listening');
+  showScreen('screen-tap');
+}
+</script>
+</body>
+</html>
