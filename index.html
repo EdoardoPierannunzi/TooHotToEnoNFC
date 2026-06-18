@@ -67,7 +67,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 }
 .topbar-logo{font-family:var(--font-head);font-weight:800;font-size:1.05rem;color:var(--accent);display:flex;align-items:center;gap:8px;white-space:nowrap}
 .topbar-logo span{font-size:1.25rem}
-.nav{display:flex;gap:2px;flex-wrap:wrap}
+.nav{display:flex;gap:2px;flex-wrap:wrap;flex:1;justify-content:flex-end}
 .nav-btn{
   background:none;border:none;color:var(--text2);font-family:var(--font-mono);
   font-size:.72rem;padding:10px 11px;border-radius:6px;cursor:pointer;
@@ -89,35 +89,121 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
   padding:3px 10px;border-radius:20px;font-family:var(--font-mono);vertical-align:middle;
 }
 
-.nfc-zone{
-  background:var(--surface);border:2px dashed var(--border);
-  border-radius:var(--radius);padding:clamp(22px,6vw,32px);text-align:center;
-  margin-bottom:28px;transition:all .3s;cursor:pointer;position:relative;overflow:hidden;
-  touch-action:manipulation;
-}
-.nfc-zone:hover,.nfc-zone.listening{border-color:var(--accent);background:var(--surface2)}
-.nfc-zone.listening::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(circle at 50% 50%,#00e5a015 0%,transparent 70%);
-  animation:pulse-bg 2s ease-in-out infinite;
-}
-@keyframes pulse-bg{0%,100%{opacity:.5}50%{opacity:1}}
-.nfc-icon{font-size:clamp(2.4rem,8vw,3rem);margin-bottom:12px;display:block}
-.nfc-zone h3{font-family:var(--font-head);font-size:1rem;margin-bottom:6px}
-.nfc-zone p{color:var(--text2);font-size:.8rem}
 .nfc-status{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font-size:.75rem;color:var(--text2)}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--text2)}
 .dot.green{background:var(--success);box-shadow:0 0 8px var(--success);animation:blink 1.2s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-.amount-row{
-  display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);padding:18px;margin-bottom:28px;
+.pos-display{
+  display:flex;align-items:baseline;justify-content:center;gap:6px;
+  padding:clamp(20px,6vw,32px) 16px clamp(12px,4vw,18px);
+  user-select:none;
 }
-.amount-row .field{flex:1;min-width:130px;margin:0}
-.amount-row .field.note{flex:2;min-width:160px}
+.pos-currency{font-family:var(--font-head);font-weight:800;font-size:clamp(1.4rem,5vw,1.8rem);color:var(--danger)}
+.pos-amount{
+  font-family:var(--font-head);font-weight:800;color:var(--text);
+  font-size:clamp(2.6rem,13vw,4rem);line-height:1;letter-spacing:.01em;
+  word-break:break-all;
+}
 
+.pos-note{
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  color:var(--text);padding:13px 16px;border-radius:var(--radius);
+  font-family:var(--font-mono);font-size:16px;outline:none;
+  margin-bottom:18px;min-height:44px;transition:border-color .2s;
+}
+.pos-note:focus{border-color:var(--accent)}
+
+.keypad{
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  gap:clamp(8px,2.5vw,10px);max-width:360px;margin:0 auto;width:100%;
+}
+.key{
+  background:var(--surface);border:1px solid var(--border);color:var(--text);
+  border-radius:var(--radius);font-family:var(--font-head);font-weight:700;
+  font-size:clamp(1.2rem,5vw,1.5rem);padding:0;aspect-ratio:1;cursor:pointer;
+  touch-action:manipulation;transition:background .15s,transform .1s;
+  min-height:52px;
+}
+.key:active{background:var(--surface2);transform:scale(.96)}
+.key-sub{color:var(--text2);font-size:clamp(1rem,4vw,1.2rem)}
+.key-enter{
+  grid-row:span 1;background:var(--accent);color:#0d0d0f;border:none;
+  font-size:clamp(.85rem,3.2vw,1rem);letter-spacing:.02em;
+}
+.key-enter:active{background:#00ffb3}
+.key-enter.listening{
+  background:var(--danger);animation:pulse-bg-key 1.4s ease-in-out infinite;
+}
+@keyframes pulse-bg-key{0%,100%{opacity:1}50%{opacity:.7}}
+
+/* ── Supermercato ── */
+.market-products-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(min(130px,45vw),1fr));
+  gap:10px;margin-bottom:8px;
+}
+@media(min-width:700px){
+  .market-products-grid{grid-template-columns:repeat(auto-fill,minmax(150px,160px))}
+}
+.market-product-btn{
+  background:var(--surface);border:1px solid var(--border);color:var(--text);
+  border-radius:var(--radius);padding:16px 12px;cursor:pointer;text-align:center;
+  touch-action:manipulation;transition:background .15s,transform .1s,border-color .15s;
+  display:flex;flex-direction:column;gap:6px;min-height:74px;justify-content:center;
+  position:relative;
+}
+.market-product-btn:active{background:var(--surface2);transform:scale(.97)}
+.market-product-desc{font-family:var(--font-head);font-weight:700;font-size:.9rem;word-break:break-word}
+.market-product-price{font-family:var(--font-mono);font-size:.82rem;color:var(--accent)}
+.market-product-btn.edit-mode{border-color:var(--accent2);border-style:dashed}
+.market-product-edit-badge{
+  position:absolute;top:6px;right:6px;font-size:.85rem;opacity:.8;
+}
+.market-add-tile{
+  background:transparent;border:2px dashed var(--border);color:var(--text2);
+  border-radius:var(--radius);padding:16px 12px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;min-height:74px;
+  font-size:1.6rem;touch-action:manipulation;transition:border-color .15s,color .15s;
+}
+.market-add-tile:active{border-color:var(--accent);color:var(--accent)}
+
+.market-cart-header{
+  display:flex;justify-content:space-between;align-items:baseline;
+  margin:24px 0 10px;font-family:var(--font-head);font-weight:700;font-size:1rem;
+  max-width:600px;margin-left:auto;margin-right:auto;
+}
+#market-cart-total{color:var(--accent);font-size:1.3rem}
+
+.market-cart-list{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;max-width:600px;margin:0 auto;
+}
+.market-cart-row{
+  position:relative;overflow:hidden;border-bottom:1px solid var(--border);
+}
+.market-cart-row:last-child{border-bottom:none}
+.market-cart-row-content{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 16px;background:var(--surface);position:relative;z-index:2;
+  transition:transform .25s ease;touch-action:pan-y;min-height:44px;
+}
+.market-cart-row-content.dragging{transition:none}
+.market-cart-row-name{font-size:.88rem;flex:1;word-break:break-word}
+.market-cart-row-qty{color:var(--text2);font-size:.78rem;margin-left:6px}
+.market-cart-row-amount{font-family:var(--font-mono);font-weight:700;color:var(--text);white-space:nowrap}
+.market-cart-row-delete-icon{
+  background:none;border:none;color:var(--text2);font-size:1.2rem;cursor:pointer;
+  padding:10px;touch-action:manipulation;line-height:1;
+  min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;
+}
+.market-cart-row-delete-icon:active{color:var(--danger)}
+.market-cart-row-swipe-bg{
+  position:absolute;inset:0;background:var(--danger);color:#fff;
+  display:flex;align-items:center;justify-content:flex-end;padding-right:20px;
+  font-family:var(--font-head);font-weight:700;font-size:.85rem;z-index:1;
+}
+
+/* ── Supermercato fine ── */
 .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:14px}
 .card-item{
   background:var(--surface);border:1px solid var(--border);
@@ -213,6 +299,10 @@ canvas{max-width:100%;height:clamp(180px,50vw,220px)!important}
 @media(max-width:600px){
   .nav-btn span{margin-right:2px}
   .login-box{width:100%}
+  .topbar{flex-wrap:wrap;row-gap:8px}
+  .topbar-logo{flex:1 0 100%;justify-content:center}
+  .nav{flex:1 0 100%;justify-content:stretch}
+  .nav-btn{flex:1;padding:10px 4px}
 }
 </style>
 </head>
@@ -255,6 +345,7 @@ canvas{max-width:100%;height:clamp(180px,50vw,220px)!important}
     <div class="topbar-logo"><span>⬡</span> NFC Manager</div>
     <div class="nav">
       <button class="nav-btn active" onclick="showSection('scan')" id="nav-scan"><span>📡</span> Scan</button>
+      <button class="nav-btn" onclick="showSection('market')" id="nav-market"><span>🛒</span> Supermercato</button>
       <button class="nav-btn" onclick="showSection('cards')" id="nav-cards"><span>💳</span> Carte</button>
       <button class="nav-btn" onclick="showSection('stats')" id="nav-stats"><span>📊</span> Stats</button>
       <button class="nav-btn" onclick="logout()" style="color:var(--danger)"><span>↩</span></button>
@@ -264,30 +355,38 @@ canvas{max-width:100%;height:clamp(180px,50vw,220px)!important}
   <div class="main">
 
     <div class="section active" id="section-scan">
-      <div class="section-title">Gestione Carte <span class="pill">NFC</span></div>
 
-      <div class="amount-row">
-        <div class="field">
-          <label>Importo (€)</label>
-          <input type="number" id="amount-input" placeholder="es. -5.00 o +10.00" step="0.01">
-        </div>
-        <div class="field note">
-          <label>Nota transazione</label>
-          <input type="text" id="note-input" placeholder="es. Ricarica, Acquisto caffè…">
-        </div>
+      <div class="pos-display">
+        <span class="pos-currency">−€</span>
+        <span class="pos-amount" id="pos-amount">0,00</span>
       </div>
 
-      <div class="nfc-zone" id="nfc-zone" onclick="toggleNFC()">
-        <span class="nfc-icon">📡</span>
-        <h3 id="nfc-title">Avvicina una carta NFC</h3>
-        <p id="nfc-subtitle">Tocca qui per attivare il lettore NFC</p>
-        <div class="nfc-status">
-          <div class="dot" id="nfc-dot"></div>
-          <span id="nfc-status-text">In attesa</span>
-        </div>
+      <input type="text" id="note-input" class="pos-note" placeholder="Nota (opzionale): es. Caffè, Pranzo…">
+
+      <div class="keypad">
+        <button class="key" onclick="keypadPress('1')">1</button>
+        <button class="key" onclick="keypadPress('2')">2</button>
+        <button class="key" onclick="keypadPress('3')">3</button>
+        <button class="key" onclick="keypadPress('4')">4</button>
+        <button class="key" onclick="keypadPress('5')">5</button>
+        <button class="key" onclick="keypadPress('6')">6</button>
+        <button class="key" onclick="keypadPress('7')">7</button>
+        <button class="key" onclick="keypadPress('8')">8</button>
+        <button class="key" onclick="keypadPress('9')">9</button>
+        <button class="key key-sub" onclick="keypadBackspace()">⌫</button>
+        <button class="key" onclick="keypadPress('0')">0</button>
+        <button class="key" onclick="keypadPress(',')">,</button>
+        <button class="key key-enter" id="keypad-enter" onclick="keypadEnter()">
+          <span id="keypad-enter-label">📡 NFC</span>
+        </button>
       </div>
 
-      <div id="nfc-fallback" class="hidden">
+      <div class="nfc-status" id="pos-nfc-status" style="justify-content:center;margin-top:14px">
+        <div class="dot" id="nfc-dot"></div>
+        <span id="nfc-status-text">In attesa</span>
+      </div>
+
+      <div id="nfc-fallback" class="hidden" style="margin-top:16px">
         <p style="color:var(--text2);font-size:.8rem;margin-bottom:12px">⚠️ Web NFC non supportato. Inserisci l'ID carta manualmente:</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <input type="text" id="manual-id" placeholder="ID carta (es. 04:A3:B2:C1)" autocapitalize="off" autocorrect="off" spellcheck="false" style="flex:1;min-width:0;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:13px;border-radius:8px;font-family:var(--font-mono);font-size:16px;min-height:44px">
@@ -296,8 +395,31 @@ canvas{max-width:100%;height:clamp(180px,50vw,220px)!important}
       </div>
     </div>
 
+    <div class="section" id="section-market">
+      <div class="section-title">
+        Supermercato
+        <button class="btn btn-ghost btn-sm" id="market-edit-toggle" onclick="toggleMarketEditMode()" style="margin-left:auto">✏️ Configura</button>
+      </div>
+
+      <div id="market-products-grid" class="market-products-grid">
+        <p style="color:var(--text2)">Caricamento prodotti…</p>
+      </div>
+      <button class="btn btn-ghost btn-full hidden" id="market-add-product-btn" onclick="openProductModal(null)" style="margin-top:14px">➕ Aggiungi prodotto</button>
+
+      <div class="market-cart-header">
+        <span>🧾 Spesa corrente</span>
+        <span id="market-cart-total">€0,00</span>
+      </div>
+      <div id="market-cart-list" class="market-cart-list">
+        <p style="color:var(--text2);font-size:.82rem;padding:14px 0">Nessun articolo selezionato. Tocca un prodotto qui sopra per aggiungerlo.</p>
+      </div>
+
+      <button class="btn btn-primary btn-full hidden" id="market-checkout-btn" onclick="openMarketCheckout()" style="margin-top:18px">💳 Conto</button>
+    </div>
+
     <div class="section" id="section-cards">
       <div class="section-title">Tutte le Carte</div>
+      <input type="text" id="cards-search" class="pos-note" style="margin-bottom:16px" placeholder="🔎 Cerca per nome…" oninput="filterCardsGrid()">
       <div id="cards-grid" class="cards-grid"><p style="color:var(--text2)">Caricamento…</p></div>
     </div>
 
@@ -363,6 +485,58 @@ canvas{max-width:100%;height:clamp(180px,50vw,220px)!important}
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="modal-balance">
+  <div class="modal">
+    <h2 id="balance-modal-title">💰 Modifica saldo</h2>
+    <p class="sub" id="balance-modal-sub"></p>
+    <p style="margin-bottom:16px">Saldo attuale: <strong id="balance-current" style="color:var(--accent)"></strong></p>
+    <div class="field">
+      <label>Importo da applicare (€)</label>
+      <input type="number" id="balance-amount-input" placeholder="es. -5.00 o +10.00" step="0.01">
+    </div>
+    <div class="field">
+      <label>Nota transazione</label>
+      <input type="text" id="balance-note-input" placeholder="es. Ricarica, Correzione…">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="submitBalanceEdit()" id="balance-submit-btn">Applica</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-balance')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="modal-product">
+  <div class="modal">
+    <h2 id="product-modal-title">➕ Nuovo prodotto</h2>
+    <input type="hidden" id="product-id-input">
+    <div class="field"><label>Descrizione</label><input type="text" id="product-desc-input" placeholder="es. Caffè, Panino, Acqua…"></div>
+    <div class="field"><label>Prezzo (€)</label><input type="number" id="product-price-input" placeholder="es. 1.20" step="0.01" min="0"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="submitProduct()" id="product-submit-btn">Salva</button>
+      <button class="btn btn-danger hidden" id="product-delete-btn" onclick="submitDeleteProduct()">🗑️ Elimina</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-product')">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="modal-market-checkout">
+  <div class="modal">
+    <h2>💳 Conto</h2>
+    <div class="pos-display" style="padding:16px 0 8px">
+      <span class="pos-currency">€</span>
+      <span class="pos-amount" id="market-checkout-total">0,00</span>
+    </div>
+    <div class="nfc-status" id="market-nfc-status" style="justify-content:center;margin:12px 0 4px">
+      <div class="dot green" id="market-nfc-dot"></div>
+      <span id="market-nfc-status-text">In ascolto… avvicina la carta</span>
+    </div>
+    <p class="sub" style="text-align:center;margin-top:8px">La spesa verrà scalata dalla carta avvicinata, voce per voce.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-full" onclick="cancelMarketCheckout()">Annulla</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toasts"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -390,8 +564,19 @@ function saveApiUrl() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  if (!API_URL) { showConfig(); }
-  else { document.getElementById('login-screen').style.display = 'flex'; }
+  if (!API_URL) { showConfig(); return; }
+  // Se la sessione è già autenticata in questo browser (sessionStorage),
+  // saltiamo la schermata di login dopo un semplice reload della pagina.
+  // sessionStorage si svuota da solo quando la tab/app viene chiusa del
+  // tutto, quindi non è un rischio di sicurezza persistente.
+  if (sessionStorage.getItem('nfc_admin_authed') === '1') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    initNFC();
+    loadCards();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+  }
 });
 
 // ── Wrapper chiamate API (sostituisce google.script.run) ────
@@ -404,6 +589,7 @@ async function api(action, params = {}) {
 
 // ── State ──────────────────────────────────────────────────
 let nfcReader = null;
+let marketNfcReader = null; // reader NFC dedicato al checkout Supermercato
 let nfcActive = false;
 let pendingCard = null;
 let pendingAmount = 0;
@@ -426,6 +612,7 @@ async function doLogin() {
     const data = await api('loginAndLoad', { password: pwd });
     if (data.success && data.ok) {
       cardsCache = data.cards || [];
+      sessionStorage.setItem('nfc_admin_authed', '1');
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('app').style.display = 'flex';
       initNFC();
@@ -442,6 +629,7 @@ async function doLogin() {
 document.getElementById('pwd-input').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
 function logout() {
+  sessionStorage.removeItem('nfc_admin_authed');
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   stopNFC();
@@ -449,28 +637,80 @@ function logout() {
 
 // ── Navigation ─────────────────────────────────────────────
 function showSection(name) {
+  const wasMarket = document.getElementById('section-market').classList.contains('active');
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('section-'+name).classList.add('active');
   document.getElementById('nav-'+name).classList.add('active');
   if (name === 'cards') {
     // Usa la cache popolata dal login se disponibile, evita una fetch ridondante.
-    if (cardsCache) renderCardsGrid(cardsCache);
+    // Se l'utente aveva già digitato una ricerca, la riapplichiamo.
+    if (cardsCache) filterCardsGrid();
     else loadCards();
   }
   if (name === 'stats') loadStats();
+  if (name === 'market') {
+    // Ogni volta che si entra nella sezione la spesa riparte da zero,
+    // come richiesto: niente stato residuo tra una visita e l'altra.
+    marketCart = {};
+    renderMarketCart();
+    loadMarketProducts();
+  } else if (wasMarket) {
+    // Anche uscendo si azzera, per coerenza (nel caso showSection venga
+    // richiamata con lo stesso target o tramite altri flussi futuri).
+    marketCart = {};
+    marketEditMode = false;
+  }
 }
 
 // ── NFC ────────────────────────────────────────────────────
 function initNFC() {
   if (!('NDEFReader' in window)) {
     document.getElementById('nfc-fallback').classList.remove('hidden');
-    document.getElementById('nfc-subtitle').textContent = 'Web NFC non supportato su questo dispositivo';
+    document.getElementById('pos-nfc-status').style.display = 'none';
   }
 }
 
-async function toggleNFC() {
+// ── Tastierino numerico (sostituisce il vecchio campo "Importo") ──
+// keypadDigits contiene solo le cifre digitate (senza virgola, in
+// centesimi) per evitare ambiguità di parsing; es. "550" → 5,50 €.
+let keypadDigits = '';
+
+function renderKeypadAmount() {
+  const cents = keypadDigits === '' ? 0 : parseInt(keypadDigits, 10);
+  const euros = (cents / 100).toFixed(2).replace('.', ',');
+  document.getElementById('pos-amount').textContent = euros;
+}
+
+function keypadPress(char) {
+  if (char === ',') return; // la virgola è solo visuale: il display gestisce sempre i centesimi
+  if (keypadDigits.length >= 7) return; // limite di sicurezza (99999,99 €)
+  keypadDigits += char;
+  renderKeypadAmount();
+}
+
+function keypadBackspace() {
+  keypadDigits = keypadDigits.slice(0, -1);
+  renderKeypadAmount();
+}
+
+function keypadReset() {
+  keypadDigits = '';
+  renderKeypadAmount();
+}
+
+function getKeypadAmount() {
+  const cents = keypadDigits === '' ? 0 : parseInt(keypadDigits, 10);
+  return cents / 100;
+}
+
+// Il tasto invio del tastierino fa da pulsante di attivazione NFC: se non
+// stiamo già ascoltando, avvia lo scan; se siamo in ascolto, lo annulla.
+async function keypadEnter() {
   if (nfcActive) { stopNFC(); return; }
+  const amount = getKeypadAmount();
+  if (amount <= 0) { toast('Inserisci un importo da scalare', 'error'); return; }
+
   try {
     nfcReader = new NDEFReader();
     await nfcReader.scan();
@@ -486,29 +726,45 @@ async function toggleNFC() {
 
 function stopNFC() {
   nfcActive = false;
-  if (nfcReader) { try { nfcReader.abort && nfcReader.abort(); } catch(e){} nfcReader = null; }
+  if (nfcReader) {
+    // Rimuoviamo esplicitamente i listener prima di abortire: alcuni
+    // dispositivi/versioni di Chrome continuano a far scattare onreading
+    // per letture già in coda anche dopo abort(), causando popup duplicati.
+    nfcReader.onreading = null;
+    nfcReader.onreadingerror = null;
+    try { nfcReader.abort && nfcReader.abort(); } catch(e){}
+    nfcReader = null;
+  }
   setNFCState('idle');
 }
 
 function setNFCState(state) {
-  const zone = document.getElementById('nfc-zone');
-  const dot  = document.getElementById('nfc-dot');
-  const txt  = document.getElementById('nfc-status-text');
-  const title= document.getElementById('nfc-title');
-  const sub  = document.getElementById('nfc-subtitle');
-  zone.classList.toggle('listening', state==='listening');
+  const dot   = document.getElementById('nfc-dot');
+  const txt   = document.getElementById('nfc-status-text');
+  const enter = document.getElementById('keypad-enter');
+  const label = document.getElementById('keypad-enter-label');
   if (state==='listening') {
-    dot.className='dot green'; txt.textContent='In ascolto…';
-    title.textContent='Avvicina una carta NFC'; sub.textContent='Il lettore è attivo – tocca di nuovo per fermare';
+    dot.className='dot green'; txt.textContent='In ascolto… avvicina la carta';
+    enter.classList.add('listening'); label.textContent='⏹ Annulla';
   } else {
     dot.className='dot'; txt.textContent='In attesa';
-    title.textContent='Avvicina una carta NFC'; sub.textContent='Tocca qui per attivare il lettore NFC';
+    enter.classList.remove('listening'); label.textContent='📡 NFC';
   }
 }
 
+// Evita che la stessa lettura (o letture ravvicinate mentre un modal è
+// già aperto) apra più popup in sequenza: una volta che un modal di
+// carica/registrazione è a video, ignoriamo nuove letture NFC finché
+// non viene chiuso esplicitamente dall'utente.
+let nfcReadLocked = false;
+
 async function onNFCRead(serialNumber) {
+  if (nfcReadLocked) return;
+  nfcReadLocked = true;
+
   const cardId = serialNumber.toUpperCase();
-  pendingAmount = parseFloat(document.getElementById('amount-input').value) || 0;
+  // L'importo dal tastierino è sempre da scalare: lo convertiamo in negativo.
+  pendingAmount = -getKeypadAmount();
   pendingNote   = document.getElementById('note-input').value || '';
   stopNFC();
 
@@ -522,6 +778,7 @@ async function onNFCRead(serialNumber) {
     }
   } catch (err) {
     toast('Errore: ' + err.message, 'error');
+    nfcReadLocked = false; // in caso di errore, permettiamo subito un nuovo tentativo
   }
 }
 
@@ -530,6 +787,7 @@ function processManualId() {
   if (!id) { toast('Inserisci un ID carta', 'error'); return; }
   onNFCRead(id);
 }
+
 
 // ── Register modal ──────────────────────────────────────────
 function openRegisterModal(cardId) {
@@ -589,8 +847,8 @@ async function confirmCharge() {
     if (res.success) {
       closeModal('modal-charge');
       toast('✅ Saldo aggiornato: €' + res.balance.toFixed(2), 'success');
-      document.getElementById('amount-input').value = '';
-      document.getElementById('note-input').value   = '';
+      keypadReset();
+      document.getElementById('note-input').value = '';
       cardsCache = null; // forza un refresh la prossima volta che si apre "Carte" o "Stats"
     } else { toast(res.message, 'error'); }
   } catch (err) { toast('Errore: ' + err.message, 'error'); }
@@ -620,6 +878,37 @@ async function submitEdit() {
   } catch (err) { toast('Errore: ' + err.message, 'error'); }
 }
 
+// ── Balance modal (modifica saldo da elenco carte) ───────────
+let balanceModalCardId = null;
+
+function openBalanceModal(card) {
+  balanceModalCardId = card.id;
+  document.getElementById('balance-modal-title').textContent = '💰 ' + card.name;
+  document.getElementById('balance-modal-sub').textContent   = 'ID: ' + card.id;
+  document.getElementById('balance-current').textContent     = '€' + Number(card.balance).toFixed(2);
+  document.getElementById('balance-amount-input').value = '';
+  document.getElementById('balance-note-input').value   = '';
+  document.getElementById('modal-balance').classList.remove('hidden');
+}
+
+async function submitBalanceEdit() {
+  const amount = parseFloat(document.getElementById('balance-amount-input').value);
+  const note   = document.getElementById('balance-note-input').value || '';
+  if (!amount) { toast('Inserisci un importo diverso da zero', 'error'); return; }
+  const btn = document.getElementById('balance-submit-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="loader"></span>';
+  try {
+    const res = await api('updateBalance', { cardId: balanceModalCardId, amount, note });
+    if (res.success) {
+      closeModal('modal-balance');
+      toast('✅ Saldo aggiornato: €' + res.balance.toFixed(2), 'success');
+      cardsCache = null; // forza refresh dei dati alla prossima visualizzazione
+      loadCards();
+    } else { toast(res.message, 'error'); }
+  } catch (err) { toast('Errore: ' + err.message, 'error'); }
+  btn.disabled = false; btn.textContent = 'Applica';
+}
+
 // ── Delete ──────────────────────────────────────────────────
 async function deleteCardConfirm(cardId, name) {
   if (!confirm('Eliminare la carta "' + name + '"? I dati non saranno recuperabili.')) return;
@@ -631,9 +920,14 @@ async function deleteCardConfirm(cardId, name) {
 }
 
 // ── Load Cards ──────────────────────────────────────────────
-function renderCardsGrid(cards) {
+function renderCardsGrid(cards, searchQuery) {
   const grid = document.getElementById('cards-grid');
-  if (!cards.length) { grid.innerHTML = '<p style="color:var(--text2)">Nessuna carta registrata.</p>'; return; }
+  if (!cards.length) {
+    grid.innerHTML = searchQuery
+      ? '<p style="color:var(--text2)">Nessuna carta trovata per "' + esc(searchQuery) + '".</p>'
+      : '<p style="color:var(--text2)">Nessuna carta registrata.</p>';
+    return;
+  }
   grid.innerHTML = cards.map(c => `
     <div class="card-item" style="--card-color:${c.color||'var(--accent)'}">
       <div class="card-item-name">${esc(c.name)}</div>
@@ -641,6 +935,7 @@ function renderCardsGrid(cards) {
       <div class="card-item-balance">€${Number(c.balance).toFixed(2)}</div>
       <div class="card-item-meta">Aggiornato: ${new Date(c.updatedAt).toLocaleDateString('it-IT')}</div>
       <div class="card-actions">
+        <button class="btn btn-primary btn-sm" onclick='openBalanceModal(${JSON.stringify(c)})'>💰 Saldo</button>
         <button class="btn btn-ghost btn-sm" onclick='openEditModal(${JSON.stringify(c)})'>✏️ Modifica</button>
         <button class="btn btn-danger btn-sm" onclick="deleteCardConfirm('${esc(String(c.id))}','${esc(c.name)}')">🗑️</button>
       </div>
@@ -653,7 +948,20 @@ async function loadCards() {
     const data = await api('getAllCards');
     cardsCache = data.cards || [];
     renderCardsGrid(cardsCache);
+    filterCardsGrid(); // ri-applica un eventuale filtro già digitato
   } catch (err) { toast('Errore caricamento carte: ' + err.message, 'error'); }
+}
+
+// ── Ricerca carte per nome (filtro lato client, nessuna chiamata API) ──
+function filterCardsGrid() {
+  const input = document.getElementById('cards-search');
+  if (!input) return;
+  const query = input.value.trim().toLowerCase();
+  if (!query) { renderCardsGrid(cardsCache || []); return; }
+  const filtered = (cardsCache || []).filter(c =>
+    String(c.name || '').toLowerCase().includes(query)
+  );
+  renderCardsGrid(filtered, query);
 }
 
 // ── Stats ───────────────────────────────────────────────────
@@ -729,6 +1037,265 @@ function chartOpts(unit) {
   };
 }
 
+// ── Supermercato ──────────────────────────────────────────────
+// productsCache: elenco prodotti configurabili (persistente sul backend).
+// marketCart: { productId: { description, price, qty } } — SOLO in memoria,
+// azzerato ogni volta che si entra/esce dalla sezione (vedi showSection).
+let productsCache = [];
+let marketCart = {};
+let marketEditMode = false;
+
+async function loadMarketProducts() {
+  try {
+    const data = await api('getAllProducts');
+    productsCache = data.products || [];
+    renderMarketProducts();
+  } catch (err) {
+    toast('Errore caricamento prodotti: ' + err.message, 'error');
+  }
+}
+
+function renderMarketProducts() {
+  const grid = document.getElementById('market-products-grid');
+  const tiles = productsCache.map(p => `
+    <button class="market-product-btn ${marketEditMode ? 'edit-mode' : ''}"
+      onclick="${marketEditMode ? `openProductModal(${JSON.stringify(p).replace(/"/g,'&quot;')})` : `addToMarketCart('${esc(String(p.id))}')`}">
+      ${marketEditMode ? '<span class="market-product-edit-badge">✏️</span>' : ''}
+      <span class="market-product-desc">${esc(p.description)}</span>
+      <span class="market-product-price">€${Number(p.price).toFixed(2)}</span>
+    </button>
+  `).join('');
+
+  const addTile = marketEditMode
+    ? '<button class="market-add-tile" onclick="openProductModal(null)">➕</button>'
+    : '';
+
+  grid.innerHTML = (tiles || (!marketEditMode ? '<p style="color:var(--text2)">Nessun prodotto configurato. Tocca "Configura" per aggiungerne uno.</p>' : '')) + addTile;
+
+  document.getElementById('market-add-product-btn').classList.toggle('hidden', !marketEditMode || productsCache.length === 0);
+}
+
+function toggleMarketEditMode() {
+  marketEditMode = !marketEditMode;
+  document.getElementById('market-edit-toggle').textContent = marketEditMode ? '✅ Fatto' : '✏️ Configura';
+  renderMarketProducts();
+}
+
+// ── Modal prodotto (crea / modifica / elimina) ──────────────
+function openProductModal(product) {
+  const isEdit = !!product;
+  document.getElementById('product-modal-title').textContent = isEdit ? '✏️ Modifica prodotto' : '➕ Nuovo prodotto';
+  document.getElementById('product-id-input').value    = isEdit ? product.id : '';
+  document.getElementById('product-desc-input').value  = isEdit ? product.description : '';
+  document.getElementById('product-price-input').value = isEdit ? product.price : '';
+  document.getElementById('product-delete-btn').classList.toggle('hidden', !isEdit);
+  document.getElementById('modal-product').classList.remove('hidden');
+}
+
+async function submitProduct() {
+  const id    = document.getElementById('product-id-input').value;
+  const desc  = document.getElementById('product-desc-input').value.trim();
+  const price = parseFloat(document.getElementById('product-price-input').value);
+  if (!desc) { toast('Inserisci una descrizione', 'error'); return; }
+  if (isNaN(price) || price < 0) { toast('Inserisci un prezzo valido', 'error'); return; }
+
+  const btn = document.getElementById('product-submit-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="loader"></span>';
+  try {
+    const res = id
+      ? await api('updateProduct', { productId: id, description: desc, price })
+      : await api('addProduct', { description: desc, price });
+    if (res.success) {
+      closeModal('modal-product');
+      toast('✅ Prodotto salvato', 'success');
+      loadMarketProducts();
+    } else { toast(res.message, 'error'); }
+  } catch (err) { toast('Errore: ' + err.message, 'error'); }
+  btn.disabled = false; btn.textContent = 'Salva';
+}
+
+async function submitDeleteProduct() {
+  const id = document.getElementById('product-id-input').value;
+  if (!id) return;
+  if (!confirm('Eliminare questo prodotto dalla configurazione?')) return;
+  try {
+    const res = await api('deleteProduct', { productId: id });
+    if (res.success) {
+      closeModal('modal-product');
+      toast('🗑️ Prodotto eliminato', 'success');
+      loadMarketProducts();
+    } else { toast(res.message, 'error'); }
+  } catch (err) { toast('Errore: ' + err.message, 'error'); }
+}
+
+// ── Carrello (stato locale, mai persistito) ─────────────────
+function addToMarketCart(productId) {
+  const product = productsCache.find(p => String(p.id) === String(productId));
+  if (!product) return;
+  if (marketCart[productId]) {
+    marketCart[productId].qty += 1;
+  } else {
+    marketCart[productId] = { description: product.description, price: Number(product.price), qty: 1 };
+  }
+  renderMarketCart();
+}
+
+function removeFromMarketCart(productId) {
+  delete marketCart[productId];
+  renderMarketCart();
+}
+
+function decrementMarketCartItem(productId) {
+  const item = marketCart[productId];
+  if (!item) return;
+  item.qty -= 1;
+  if (item.qty <= 0) delete marketCart[productId];
+  renderMarketCart();
+}
+
+function getMarketCartTotal() {
+  return Object.values(marketCart).reduce((sum, item) => sum + item.price * item.qty, 0);
+}
+
+function renderMarketCart() {
+  const list = document.getElementById('market-cart-list');
+  const entries = Object.entries(marketCart);
+  const total = getMarketCartTotal();
+
+  document.getElementById('market-cart-total').textContent = '€' + total.toFixed(2);
+  document.getElementById('market-checkout-btn').classList.toggle('hidden', entries.length === 0);
+
+  if (!entries.length) {
+    list.innerHTML = '<p style="color:var(--text2);font-size:.82rem;padding:14px 0">Nessun articolo selezionato. Tocca un prodotto qui sopra per aggiungerlo.</p>';
+    return;
+  }
+
+  list.innerHTML = entries.map(([id, item]) => `
+    <div class="market-cart-row" data-product-id="${esc(id)}">
+      <div class="market-cart-row-swipe-bg">🗑️ Rimuovi</div>
+      <div class="market-cart-row-content" id="cart-row-${esc(id)}">
+        <span class="market-cart-row-name">${esc(item.description)}<span class="market-cart-row-qty">×${item.qty}</span></span>
+        <span class="market-cart-row-amount">€${(item.price * item.qty).toFixed(2)}</span>
+        <button class="market-cart-row-delete-icon" onclick="removeFromMarketCart('${esc(id)}')" title="Rimuovi">✕</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Swipe-to-delete touch (mobile): trascinando la riga verso sinistra
+  // appare lo sfondo rosso "Rimuovi"; superata una soglia, la voce viene
+  // eliminata dal carrello. Su desktop resta sempre disponibile l'icona ✕.
+  entries.forEach(([id]) => {
+    const row = document.getElementById('cart-row-' + id);
+    if (!row) return;
+    attachSwipeToDelete(row, () => removeFromMarketCart(id));
+  });
+}
+
+function attachSwipeToDelete(rowEl, onDelete) {
+  let startX = 0;
+  let currentX = 0;
+  let dragging = false;
+  const threshold = 90; // px di trascinamento per considerare l'eliminazione confermata
+
+  rowEl.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    dragging = true;
+    rowEl.classList.add('dragging');
+  }, { passive: true });
+
+  rowEl.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    currentX = e.touches[0].clientX - startX;
+    if (currentX > 0) currentX = 0; // solo swipe verso sinistra
+    rowEl.style.transform = `translateX(${currentX}px)`;
+  }, { passive: true });
+
+  rowEl.addEventListener('touchend', () => {
+    dragging = false;
+    rowEl.classList.remove('dragging');
+    if (Math.abs(currentX) > threshold) {
+      rowEl.style.transform = `translateX(-100%)`;
+      setTimeout(onDelete, 150);
+    } else {
+      rowEl.style.transform = 'translateX(0)';
+    }
+    currentX = 0;
+  });
+}
+
+// ── Checkout Supermercato (NFC) ──────────────────────────────
+let marketNfcReadLocked = false;
+
+async function openMarketCheckout() {
+  const total = getMarketCartTotal();
+  if (total <= 0) return;
+  document.getElementById('market-checkout-total').textContent = total.toFixed(2).replace('.', ',');
+  document.getElementById('modal-market-checkout').classList.remove('hidden');
+  marketNfcReadLocked = false;
+  await startMarketNfcScan();
+}
+
+function cancelMarketCheckout() {
+  stopMarketNfcScan();
+  closeModal('modal-market-checkout');
+}
+
+async function startMarketNfcScan() {
+  if (!('NDEFReader' in window)) {
+    toast('NFC non supportato: usa il campo manuale nella schermata Scan', 'error');
+    return;
+  }
+  try {
+    marketNfcReader = new NDEFReader();
+    await marketNfcReader.scan();
+    marketNfcReader.onreading = e => onMarketNfcRead(e.serialNumber);
+    marketNfcReader.onreadingerror = () => toast('Errore lettura NFC', 'error');
+  } catch (err) {
+    toast('NFC non disponibile: ' + err.message, 'error');
+  }
+}
+
+function stopMarketNfcScan() {
+  if (marketNfcReader) {
+    marketNfcReader.onreading = null;
+    marketNfcReader.onreadingerror = null;
+    try { marketNfcReader.abort && marketNfcReader.abort(); } catch(e){}
+    marketNfcReader = null;
+  }
+}
+
+async function onMarketNfcRead(serialNumber) {
+  if (marketNfcReadLocked) return;
+  marketNfcReadLocked = true;
+  stopMarketNfcScan();
+
+  const cardId = serialNumber.toUpperCase();
+  // Raggruppiamo il carrello per descrizione: ogni riga distinta diventa
+  // un'unica transazione con l'importo totale di quella voce (prezzo × qty).
+  const items = Object.values(marketCart).map(item => ({
+    description: item.qty > 1 ? `${item.description} x${item.qty}` : item.description,
+    amount: item.price * item.qty
+  }));
+
+  try {
+    const res = await api('checkoutMarket', { cardId, items: JSON.stringify(items) });
+    if (res.success) {
+      closeModal('modal-market-checkout');
+      toast('✅ Spesa scalata! Nuovo saldo: €' + res.balance.toFixed(2), 'success');
+      marketCart = {};
+      renderMarketCart();
+      cardsCache = null; // forza refresh nelle altre sezioni
+    } else {
+      toast(res.message, 'error');
+      marketNfcReadLocked = false;
+      await startMarketNfcScan(); // riprova lo scan se la carta non era valida
+    }
+  } catch (err) {
+    toast('Errore: ' + err.message, 'error');
+    marketNfcReadLocked = false;
+  }
+}
+
 // ── Color picker ────────────────────────────────────────────
 function buildColorPicker(containerId, onChange, initial) {
   const container = document.getElementById(containerId);
@@ -745,7 +1312,12 @@ function selectColor(containerId, color) {
 }
 
 // ── Helpers ─────────────────────────────────────────────────
-function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+function closeModal(id) {
+  document.getElementById(id).classList.add('hidden');
+  // Sblocca sempre la possibilità di leggere una nuova carta NFC quando un
+  // modal viene chiuso, sia per conferma che per annullamento.
+  if (id === 'modal-register' || id === 'modal-charge') nfcReadLocked = false;
+}
 function esc(s) { return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
 function toast(msg, type='success') {
