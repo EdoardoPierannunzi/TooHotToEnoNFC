@@ -145,6 +145,8 @@ body::after{ width:min(300px,60vw);height:min(300px,60vw); bottom:-80px;left:-60
   touch-action:manipulation;
 }
 .settings-link:active{color:rgba(0,0,0,.5)}
+
+.hidden{display:none!important}
 </style>
 </head>
 <body>
@@ -173,6 +175,7 @@ body::after{ width:min(300px,60vw);height:min(300px,60vw); bottom:-80px;left:-60
       </div>
     </div>
   </div>
+  <button class="btn-back hidden" id="install-btn" onclick="installPwa()">⬇️ Installa app</button>
 </div>
 
 <!-- Loading -->
@@ -340,6 +343,36 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+
+// ── Installazione PWA (pulsante manuale) ──────────────────
+// Chrome Android emette "beforeinstallprompt" solo dopo che i criteri di
+// installabilità sono soddisfatti e l'utente ha interagito un po' col sito
+// (euristica interna di Chrome). Per questo non ci affidiamo al banner
+// automatico, ma mostriamo un pulsante visibile solo quando Chrome dà
+// effettivamente il via libera.
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  const btn = document.getElementById('install-btn');
+  if (btn) btn.classList.remove('hidden');
+});
+
+async function installPwa() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  const btn = document.getElementById('install-btn');
+  if (btn) btn.classList.add('hidden');
+}
+
+window.addEventListener('appinstalled', () => {
+  const btn = document.getElementById('install-btn');
+  if (btn) btn.classList.add('hidden');
+  deferredInstallPrompt = null;
+});
 </script>
 </body>
 </html>
