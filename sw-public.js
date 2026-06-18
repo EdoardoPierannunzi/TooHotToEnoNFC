@@ -5,7 +5,7 @@
 //  deve essere sempre quello vero, mai una versione vecchia in cache.
 // ============================================================
 
-const CACHE_NAME = 'nfc-public-v1';
+const CACHE_NAME = 'nfc-public-v2';
 const STATIC_ASSETS = [
   './public.html',
   './manifest-public.json',
@@ -45,7 +45,27 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Per gli asset statici: cache-first con fallback di rete,
+  // Per la pagina HTML principale: network-first, con la cache solo come
+  // fallback offline. Senza questo, una volta cachata una versione di
+  // public.html, il Service Worker continuerebbe a servirla per sempre
+  // anche dopo un aggiornamento del file sul server.
+  const isHtmlPage = event.request.mode === 'navigate' || url.pathname.endsWith('.html');
+  if (isHtmlPage) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Per gli altri asset statici: cache-first con fallback di rete,
   // così l'app si apre istantaneamente anche con connessione lenta.
   event.respondWith(
     caches.match(event.request).then((cached) => {
