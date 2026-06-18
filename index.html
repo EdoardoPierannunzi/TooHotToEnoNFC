@@ -242,7 +242,8 @@ canvas{max-width:100%;height:clamp(180px,50vw,220px)!important}
     </div>
     <button class="btn btn-primary btn-full" onclick="doLogin()" id="login-btn">Accedi</button>
     <p id="login-err" style="color:var(--danger);font-size:.78rem;margin-top:12px;display:none">Password errata.</p>
-    <a href="./public.html" class="btn btn-ghost btn-full" style="margin-top:16px;text-decoration:none">📡 Vai al saldo carte</a>
+    <button class="btn btn-ghost btn-full hidden" id="install-btn" onclick="installPwa()" style="margin-top:12px">⬇️ Installa app</button>
+    <a href="./public.html" class="btn btn-ghost btn-full" style="margin-top:12px;text-decoration:none">📡 Vai al saldo carte</a>
   </div>
 </div>
 
@@ -765,6 +766,43 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+
+// ── Installazione PWA (pulsante manuale) ──────────────────
+// Chrome Android scatena "beforeinstallprompt" solo quando i criteri di
+// installabilità sono soddisfatti E l'utente ha interagito col sito per un
+// po' (euristica interna di Chrome, non documentata in modo preciso).
+// Per questo non possiamo affidarci al banner automatico: lo catturiamo
+// noi e mostriamo un pulsante esplicito, mostrato solo quando Chrome ci dà
+// il via libera (quindi resta nascosto su browser che non lo supportano,
+// es. iOS Safari, o se l'app è già installata).
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  const btn = document.getElementById('install-btn');
+  if (btn) btn.classList.remove('hidden');
+});
+
+async function installPwa() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  const choice = await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  const btn = document.getElementById('install-btn');
+  if (btn) btn.classList.add('hidden');
+  if (choice.outcome === 'accepted') {
+    toast('✅ App installata!', 'success');
+  }
+}
+
+// Se l'app è già installata, Chrome non riemette beforeinstallprompt:
+// nascondiamo il pulsante per evitare confusione.
+window.addEventListener('appinstalled', () => {
+  const btn = document.getElementById('install-btn');
+  if (btn) btn.classList.add('hidden');
+  deferredInstallPrompt = null;
+});
 </script>
 </body>
 </html>
