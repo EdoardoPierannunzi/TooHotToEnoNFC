@@ -96,39 +96,49 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 
 .pos-display{
   display:flex;align-items:baseline;justify-content:center;gap:6px;
-  padding:clamp(20px,6vw,32px) 16px clamp(12px,4vw,18px);
+  padding:clamp(10px,3vw,18px) 16px clamp(8px,2vw,12px);
   user-select:none;
 }
-.pos-currency{font-family:var(--font-head);font-weight:800;font-size:clamp(1.4rem,5vw,1.8rem);color:var(--danger)}
+.pos-currency{font-family:var(--font-head);font-weight:800;font-size:clamp(1.2rem,4.5vw,1.6rem);color:var(--danger)}
 .pos-amount{
   font-family:var(--font-head);font-weight:800;color:var(--text);
-  font-size:clamp(2.6rem,13vw,4rem);line-height:1;letter-spacing:.01em;
+  font-size:clamp(2.2rem,10vw,3.2rem);line-height:1;letter-spacing:.01em;
   word-break:break-all;
 }
 
+.pos-note-row{
+  display:flex;gap:8px;align-items:stretch;width:100%;
+  margin-bottom:clamp(10px,2.5vw,16px);
+}
+.pos-note-wrap{flex:4 1 0%;min-width:0;position:relative}
 .pos-note{
-  width:100%;background:var(--surface);border:1px solid var(--border);
+  width:100%;height:100%;background:var(--surface);border:1px solid var(--border);
   color:var(--text);padding:13px 16px;border-radius:var(--radius);
   font-family:var(--font-mono);font-size:16px;outline:none;
-  margin-bottom:18px;min-height:44px;transition:border-color .2s;
+  min-height:48px;transition:border-color .2s;
 }
 .pos-note:focus{border-color:var(--accent)}
+.pos-nfc-btn{
+  flex:1 1 0%;min-width:48px;margin:0;
+  display:flex;align-items:center;justify-content:center;font-size:clamp(1.2rem,5vw,1.5rem);
+}
 
 .keypad{
-  display:grid;grid-template-columns:1fr 1fr 1fr;
-  gap:clamp(8px,2.5vw,10px);max-width:360px;margin:0 auto;width:100%;
+  display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:repeat(4,1fr);
+  gap:clamp(6px,2vw,10px);max-width:360px;margin:0 auto;width:100%;
+  flex:1;min-height:0;
 }
 .key{
   background:var(--surface);border:1px solid var(--border);color:var(--text);
   border-radius:var(--radius);font-family:var(--font-head);font-weight:700;
-  font-size:clamp(1.2rem,5vw,1.5rem);padding:0;aspect-ratio:1;cursor:pointer;
+  font-size:clamp(1.1rem,4.5vw,1.5rem);padding:0;cursor:pointer;
   touch-action:manipulation;transition:background .15s,transform .1s;
-  min-height:52px;
+  min-height:0;width:100%;height:100%;
 }
 .key:active{background:var(--surface2);transform:scale(.96)}
-.key-sub{color:var(--text2);font-size:clamp(1rem,4vw,1.2rem)}
+.key-sub{color:var(--text2);font-size:clamp(.95rem,3.6vw,1.2rem)}
 .key-enter{
-  grid-row:span 1;background:var(--accent);color:#0d0d0f;border:none;
+  background:var(--accent);color:#0d0d0f;border:none;
   font-size:clamp(.85rem,3.2vw,1rem);letter-spacing:.02em;
 }
 .key-enter:active{background:#00ffb3}
@@ -136,6 +146,32 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
   background:var(--danger);animation:pulse-bg-key 1.4s ease-in-out infinite;
 }
 @keyframes pulse-bg-key{0%,100%{opacity:1}50%{opacity:.7}}
+
+/* Vincola l'intera schermata Scan all'altezza disponibile (viewport meno
+   topbar e padding): usiamo "height" (non min-height) così i figli con
+   flex:1 si comprimono per restare sempre dentro lo schermo, ed il
+   tastierino non richiede mai lo scroll. Il valore sottratto è diverso
+   da desktop a mobile perché sotto i 600px la topbar va a due righe
+   (logo sopra, menu sotto) e diventa quindi più alta.
+   Nota: questo vincolo si applica solo quando la sezione Scan è quella
+   attiva (selettore .section.active#section-scan), per non interferire
+   con le altre sezioni che restano a scorrimento naturale. */
+.section.active#section-scan{
+  display:flex;flex-direction:column;
+  height:calc(100dvh - 56px - var(--safe-t) - 48px - var(--safe-b));
+  overflow-y:auto;
+}
+#section-scan .keypad{flex:1;min-height:0}
+#section-scan .pos-display,
+#section-scan .pos-note-row{flex-shrink:0}
+#section-scan .nfc-status,
+#section-scan #nfc-fallback{flex-shrink:0}
+
+@media(max-width:600px){
+  .section.active#section-scan{
+    height:calc(100dvh - 110px - var(--safe-t) - var(--safe-b) - 48px);
+  }
+}
 
 /* ── Supermercato ── */
 .market-products-grid{
@@ -234,7 +270,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 .chart-title{font-family:var(--font-head);font-weight:700;margin-bottom:14px;font-size:.95rem}
 canvas{max-width:100%;height:clamp(180px,50vw,220px)!important}
 
-.txn-table{width:100%;border-collapse:collapse;font-size:.74rem;min-width:480px}
+.txn-table{width:100%;border-collapse:collapse;font-size:.74rem;min-width:520px}
 .txn-table th{
   text-align:left;padding:9px 10px;color:var(--text2);
   border-bottom:1px solid var(--border);font-weight:400;
@@ -244,6 +280,11 @@ canvas{max-width:100%;height:clamp(180px,50vw,220px)!important}
 .txn-table tr:last-child td{border:none}
 .txn-pos{color:var(--success)}
 .txn-neg{color:var(--danger)}
+.txn-delete-btn{
+  background:none;border:none;color:var(--text2);cursor:pointer;font-size:.95rem;
+  padding:8px;min-width:36px;min-height:36px;touch-action:manipulation;line-height:1;
+}
+.txn-delete-btn:active{color:var(--danger)}
 
 .toast-wrap{
   position:fixed;bottom:max(20px,var(--safe-b));left:16px;right:16px;
@@ -361,7 +402,15 @@ canvas{max-width:100%;height:clamp(180px,50vw,220px)!important}
         <span class="pos-amount" id="pos-amount">0,00</span>
       </div>
 
-      <input type="text" id="note-input" class="pos-note" placeholder="Nota (opzionale): es. Caffè, Pranzo…">
+      <div class="pos-note-row">
+        <div class="pos-note-wrap">
+          <input type="text" id="note-input" class="pos-note" placeholder="Nota (opzionale): es. Caffè, Pranzo…" autocomplete="off" list="note-suggestions">
+          <datalist id="note-suggestions"></datalist>
+        </div>
+        <button class="key key-enter pos-nfc-btn" id="keypad-enter" onclick="keypadEnter()">
+          <span id="keypad-enter-label">📡</span>
+        </button>
+      </div>
 
       <div class="keypad">
         <button class="key" onclick="keypadPress('1')">1</button>
@@ -376,17 +425,14 @@ canvas{max-width:100%;height:clamp(180px,50vw,220px)!important}
         <button class="key key-sub" onclick="keypadBackspace()">⌫</button>
         <button class="key" onclick="keypadPress('0')">0</button>
         <button class="key" onclick="keypadPress(',')">,</button>
-        <button class="key key-enter" id="keypad-enter" onclick="keypadEnter()">
-          <span id="keypad-enter-label">📡 NFC</span>
-        </button>
       </div>
 
-      <div class="nfc-status" id="pos-nfc-status" style="justify-content:center;margin-top:14px">
+      <div class="nfc-status" id="pos-nfc-status" style="justify-content:center;margin-top:10px">
         <div class="dot" id="nfc-dot"></div>
         <span id="nfc-status-text">In attesa</span>
       </div>
 
-      <div id="nfc-fallback" class="hidden" style="margin-top:16px">
+      <div id="nfc-fallback" class="hidden" style="margin-top:12px">
         <p style="color:var(--text2);font-size:.8rem;margin-bottom:12px">⚠️ Web NFC non supportato. Inserisci l'ID carta manualmente:</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <input type="text" id="manual-id" placeholder="ID carta (es. 04:A3:B2:C1)" autocapitalize="off" autocorrect="off" spellcheck="false" style="flex:1;min-width:0;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:13px;border-radius:8px;font-family:var(--font-mono);font-size:16px;min-height:44px">
@@ -431,8 +477,8 @@ canvas{max-width:100%;height:clamp(180px,50vw,220px)!important}
         <canvas id="chart-movements"></canvas>
       </div>
       <div class="chart-container">
-        <div class="chart-title">Saldo per carta</div>
-        <canvas id="chart-balances"></canvas>
+        <div class="chart-title">Spesa per categoria</div>
+        <div id="chart-balances-wrap"><canvas id="chart-balances"></canvas></div>
       </div>
       <div class="chart-container">
         <div class="chart-title">Ultime transazioni</div>
@@ -574,6 +620,7 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('app').style.display = 'flex';
     initNFC();
     loadCards();
+    loadNoteSuggestions();
   } else {
     document.getElementById('login-screen').style.display = 'flex';
   }
@@ -597,6 +644,10 @@ let pendingNote = '';
 let selectedColor = '#00e5a0';
 let selectedEditColor = '#00e5a0';
 const COLORS = ['#00e5a0','#ff6b35','#7c6bff','#ff4466','#ffd60a','#00b4d8','#f72585','#06d6a0'];
+// Palette estesa per il grafico "Spesa per categoria": le categorie nascono
+// dinamicamente dalle note delle transazioni, quindi servono più colori
+// distinti rispetto a quelli usati per le carte (che l'utente sceglie a mano).
+const CATEGORY_COLORS = ['#00e5a0','#ff6b35','#7c6bff','#ff4466','#ffd60a','#00b4d8','#f72585','#06d6a0','#a3e635','#fb923c','#38bdf8','#e879f9','#facc15','#34d399','#f87171','#818cf8'];
 let chartMovements = null;
 let chartBalances  = null;
 
@@ -617,6 +668,7 @@ async function doLogin() {
       document.getElementById('app').style.display = 'flex';
       initNFC();
       renderCardsGrid(cardsCache); // usa i dati già ottenuti col login, niente fetch extra
+      loadNoteSuggestions();
     } else {
       document.getElementById('login-err').style.display = 'block';
     }
@@ -627,6 +679,22 @@ async function doLogin() {
   btn.textContent = 'Accedi';
 }
 document.getElementById('pwd-input').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+// ── Suggerimenti nota (basati sulle spese precedenti) ────────
+// Popola il <datalist> collegato al campo Nota della schermata Scan con
+// le descrizioni già usate in passato, così digitando l'utente vede subito
+// i suggerimenti nativi del browser (funzionano anche su mobile).
+async function loadNoteSuggestions() {
+  try {
+    const data = await api('getDistinctNotes');
+    const notes = data.notes || [];
+    const list = document.getElementById('note-suggestions');
+    list.innerHTML = notes.map(n => `<option value="${esc(n)}"></option>`).join('');
+  } catch (err) {
+    // Non blocchiamo l'uso dell'app se i suggerimenti non si caricano:
+    // il campo nota resta comunque scrivibile liberamente.
+  }
+}
 
 function logout() {
   sessionStorage.removeItem('nfc_admin_authed');
@@ -745,10 +813,10 @@ function setNFCState(state) {
   const label = document.getElementById('keypad-enter-label');
   if (state==='listening') {
     dot.className='dot green'; txt.textContent='In ascolto… avvicina la carta';
-    enter.classList.add('listening'); label.textContent='⏹ Annulla';
+    enter.classList.add('listening'); label.textContent='⏹';
   } else {
     dot.className='dot'; txt.textContent='In attesa';
-    enter.classList.remove('listening'); label.textContent='📡 NFC';
+    enter.classList.remove('listening'); label.textContent='📡';
   }
 }
 
@@ -850,6 +918,7 @@ async function confirmCharge() {
       keypadReset();
       document.getElementById('note-input').value = '';
       cardsCache = null; // forza un refresh la prossima volta che si apre "Carte" o "Stats"
+      if (chargeNote && chargeNote.trim()) loadNoteSuggestions(); // aggiorna i suggerimenti con la nota appena usata
     } else { toast(res.message, 'error'); }
   } catch (err) { toast('Errore: ' + err.message, 'error'); }
   btn.disabled = false; btn.textContent = 'Conferma';
@@ -919,6 +988,22 @@ async function deleteCardConfirm(cardId, name) {
   } catch (err) { toast('Errore: ' + err.message, 'error'); }
 }
 
+// ── Eliminazione transazione (dalla sezione Stats) ──────────
+// Eliminare una transazione ripristina anche il saldo della carta,
+// annullando l'effetto che quell'operazione aveva avuto (es. cancellando
+// un addebito di 5€, il saldo torna ad aumentare di 5€).
+async function deleteTransactionConfirm(transactionId) {
+  if (!confirm('Eliminare questa transazione? Il saldo della carta verrà ripristinato come se l\'operazione non fosse mai avvenuta.')) return;
+  try {
+    const res = await api('deleteTransaction', { transactionId });
+    if (res.success) {
+      toast('🗑️ Transazione eliminata, saldo ripristinato', 'success');
+      cardsCache = null; // forza un refresh: il saldo della carta è cambiato
+      loadStats();
+    } else toast(res.message, 'error');
+  } catch (err) { toast('Errore: ' + err.message, 'error'); }
+}
+
 // ── Load Cards ──────────────────────────────────────────────
 function renderCardsGrid(cards, searchQuery) {
   const grid = document.getElementById('cards-grid');
@@ -928,7 +1013,9 @@ function renderCardsGrid(cards, searchQuery) {
       : '<p style="color:var(--text2)">Nessuna carta registrata.</p>';
     return;
   }
-  grid.innerHTML = cards.map(c => `
+  // Ordine per saldo decrescente: le carte con più fondi appaiono prima.
+  const sorted = [...cards].sort((a, b) => Number(b.balance) - Number(a.balance));
+  grid.innerHTML = sorted.map(c => `
     <div class="card-item" style="--card-color:${c.color||'var(--accent)'}">
       <div class="card-item-name">${esc(c.name)}</div>
       <div class="card-item-id">${esc(String(c.id))}</div>
@@ -996,23 +1083,36 @@ function renderStats(data) {
     options: chartOpts('€')
   });
 
-  if (chartBalances) chartBalances.destroy();
-  chartBalances = new Chart(document.getElementById('chart-balances'), {
-    type:'doughnut',
-    data:{
-      labels: data.cards.map(c => c.name),
-      datasets:[{
-        data: data.cards.map(c => Math.max(0, Number(c.balance))),
-        backgroundColor: data.cards.map(c => c.color || '#00e5a0'),
-        borderColor: '#16161a', borderWidth: 3,
-      }]
-    },
-    options:{ plugins:{ legend:{ labels:{ color:'#f0f0f5', font:{ family:'Space Mono', size:11 } } } }, maintainAspectRatio:false }
-  });
+  // Spesa per categoria: le "categorie" sono le note/descrizioni usate
+  // nelle transazioni di addebito. Generiamo un colore distinto per
+  // ciascuna a partire da una palette fissa, ciclando se ce ne sono di più.
+  const categoryEntries = Object.entries(data.byCategory || {}).sort((a, b) => b[1] - a[1]);
+  const chartWrap = document.getElementById('chart-balances-wrap');
+  if (chartBalances) { chartBalances.destroy(); chartBalances = null; }
+
+  if (!categoryEntries.length) {
+    chartWrap.innerHTML = '<p style="color:var(--text2)">Nessuna spesa categorizzata ancora. Le categorie nascono dalle note inserite nelle transazioni.</p>';
+  } else {
+    // Ripristina sempre un canvas pulito prima di disegnare, nel caso il
+    // wrapper contenesse il messaggio di stato vuoto da una visita precedente.
+    chartWrap.innerHTML = '<canvas id="chart-balances"></canvas>';
+    chartBalances = new Chart(document.getElementById('chart-balances'), {
+      type:'doughnut',
+      data:{
+        labels: categoryEntries.map(([name]) => name),
+        datasets:[{
+          data: categoryEntries.map(([, total]) => total),
+          backgroundColor: categoryEntries.map((_, i) => CATEGORY_COLORS[i % CATEGORY_COLORS.length]),
+          borderColor: '#16161a', borderWidth: 3,
+        }]
+      },
+      options:{ plugins:{ legend:{ labels:{ color:'#f0f0f5', font:{ family:'Space Mono', size:11 } } } }, maintainAspectRatio:false }
+    });
+  }
 
   const tbl = document.getElementById('txn-table');
   tbl.innerHTML = `
-    <tr><th>Data</th><th>Carta</th><th>Importo</th><th>Nota</th><th>Saldo</th></tr>
+    <tr><th>Data</th><th>Carta</th><th>Importo</th><th>Nota</th><th>Saldo</th><th></th></tr>
     ${data.recentTxns.map(t => {
       const card = data.cards.find(c => String(c.id) === String(t.cardId));
       return `<tr>
@@ -1021,6 +1121,7 @@ function renderStats(data) {
         <td class="${Number(t.amount)>=0?'txn-pos':'txn-neg'}">${Number(t.amount)>=0?'+':''}€${Number(t.amount).toFixed(2)}</td>
         <td>${esc(t.note||'')}</td>
         <td>€${Number(t.balanceAfter).toFixed(2)}</td>
+        <td><button class="txn-delete-btn" onclick="deleteTransactionConfirm('${esc(String(t.id))}')" title="Elimina transazione">🗑️</button></td>
       </tr>`;
     }).join('')}
   `;
@@ -1272,8 +1373,13 @@ async function onMarketNfcRead(serialNumber) {
   const cardId = serialNumber.toUpperCase();
   // Raggruppiamo il carrello per descrizione: ogni riga distinta diventa
   // un'unica transazione con l'importo totale di quella voce (prezzo × qty).
+  // La nota salvata è SEMPRE la descrizione pura del prodotto, senza
+  // suffissi di quantità (es. mai "Caffè x2") — l'importo totale già
+  // rispecchia la quantità acquistata, e mantenere la nota invariata
+  // evita di spaccare le statistiche "Spesa per categoria" in tante
+  // voci diverse per lo stesso prodotto (es. "Caffè", "Caffè x2", "Caffè x3").
   const items = Object.values(marketCart).map(item => ({
-    description: item.qty > 1 ? `${item.description} x${item.qty}` : item.description,
+    description: item.description,
     amount: item.price * item.qty
   }));
 
