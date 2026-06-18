@@ -270,7 +270,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 .chart-title{font-family:var(--font-head);font-weight:700;margin-bottom:14px;font-size:.95rem}
 canvas{max-width:100%;height:clamp(180px,50vw,220px)!important}
 
-.txn-table{width:100%;border-collapse:collapse;font-size:.74rem;min-width:520px}
+.txn-table{width:100%;border-collapse:collapse;font-size:.74rem;min-width:440px}
 .txn-table th{
   text-align:left;padding:9px 10px;color:var(--text2);
   border-bottom:1px solid var(--border);font-weight:400;
@@ -774,10 +774,11 @@ function getKeypadAmount() {
 
 // Il tasto invio del tastierino fa da pulsante di attivazione NFC: se non
 // stiamo già ascoltando, avvia lo scan; se siamo in ascolto, lo annulla.
+// Funziona anche senza importo digitato: in tal caso, avvicinando una
+// carta già registrata se ne mostra solo il saldo (nessun addebito), e
+// avvicinando una carta nuova si apre comunque il modal di registrazione.
 async function keypadEnter() {
   if (nfcActive) { stopNFC(); return; }
-  const amount = getKeypadAmount();
-  if (amount <= 0) { toast('Inserisci un importo da scalare', 'error'); return; }
 
   try {
     nfcReader = new NDEFReader();
@@ -911,7 +912,10 @@ async function confirmCharge() {
   const btn = document.getElementById('charge-btn');
   btn.disabled = true; btn.innerHTML = '<span class="loader"></span>';
   try {
-    const res = await api('updateBalance', { cardId: chargeCardId, amount: chargeAmount, note: chargeNote });
+    const res = await api('updateBalance', {
+      cardId: chargeCardId, amount: chargeAmount, note: chargeNote,
+      enforceSufficientBalance: true // pagamento da Scan: blocca se il saldo non basta
+    });
     if (res.success) {
       closeModal('modal-charge');
       toast('✅ Saldo aggiornato: €' + res.balance.toFixed(2), 'success');
@@ -919,7 +923,12 @@ async function confirmCharge() {
       document.getElementById('note-input').value = '';
       cardsCache = null; // forza un refresh la prossima volta che si apre "Carte" o "Stats"
       if (chargeNote && chargeNote.trim()) loadNoteSuggestions(); // aggiorna i suggerimenti con la nota appena usata
-    } else { toast(res.message, 'error'); }
+    } else {
+      // Lasciamo il modal aperto in caso di saldo insufficiente, così
+      // l'utente vede subito l'errore e può decidere come procedere
+      // (es. annullare, o caricare prima la carta dal modal "💰 Saldo").
+      toast(res.message, 'error');
+    }
   } catch (err) { toast('Errore: ' + err.message, 'error'); }
   btn.disabled = false; btn.textContent = 'Conferma';
 }
@@ -1112,7 +1121,7 @@ function renderStats(data) {
 
   const tbl = document.getElementById('txn-table');
   tbl.innerHTML = `
-    <tr><th>Data</th><th>Carta</th><th>Importo</th><th>Nota</th><th>Saldo</th><th></th></tr>
+    <tr><th>Data</th><th>Carta</th><th>Importo</th><th>Nota</th><th></th></tr>
     ${data.recentTxns.map(t => {
       const card = data.cards.find(c => String(c.id) === String(t.cardId));
       return `<tr>
@@ -1120,7 +1129,6 @@ function renderStats(data) {
         <td>${card ? esc(card.name) : esc(String(t.cardId))}</td>
         <td class="${Number(t.amount)>=0?'txn-pos':'txn-neg'}">${Number(t.amount)>=0?'+':''}€${Number(t.amount).toFixed(2)}</td>
         <td>${esc(t.note||'')}</td>
-        <td>€${Number(t.balanceAfter).toFixed(2)}</td>
         <td><button class="txn-delete-btn" onclick="deleteTransactionConfirm('${esc(String(t.id))}')" title="Elimina transazione">🗑️</button></td>
       </tr>`;
     }).join('')}
