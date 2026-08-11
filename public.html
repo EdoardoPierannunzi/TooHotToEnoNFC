@@ -146,6 +146,13 @@ body::after{ width:min(300px,60vw);height:min(300px,60vw); bottom:-80px;left:-60
 }
 .settings-link:active{color:rgba(0,0,0,.5)}
 
+.password-gate-overlay{
+  position:fixed;inset:0;z-index:1000;
+  background:rgba(0,0,0,.55);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+}
+
 .hidden{display:none!important}
 </style>
 </head>
@@ -158,6 +165,21 @@ body::after{ width:min(300px,60vw);height:min(300px,60vw); bottom:-80px;left:-60
     <label>URL della Web App Apps Script (termina con /exec)</label>
     <input type="text" id="cfg-url" placeholder="https://script.google.com/macros/s/XXXX/exec" autocapitalize="off" autocorrect="off" spellcheck="false">
     <button class="btn-check" style="width:100%" onclick="saveConfig()">Salva e continua</button>
+    <button class="btn-check hidden" id="config-cancel-btn" style="width:100%;margin-top:8px;background:transparent;color:var(--text2);border:1px solid #ddd" onclick="cancelConfig()">Annulla</button>
+  </div>
+</div>
+
+<!-- Modal password: gate di sicurezza per uscire dalla schermata saldo
+     (premendo ⚙ o il tasto indietro del dispositivo) o per modificare
+     l'URL del backend. Usa la stessa password dell'Admin. -->
+<div class="password-gate-overlay hidden" id="password-gate-overlay">
+  <div class="config-box">
+    <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;margin-bottom:16px">🔒 Password richiesta</h3>
+    <label>Inserisci la password Admin per uscire o modificare le impostazioni</label>
+    <input type="password" id="password-gate-input" placeholder="••••••••" autocomplete="current-password">
+    <p id="password-gate-error" style="color:#c0392b;font-size:.78rem;margin:8px 0 0;display:none">Password errata.</p>
+    <button class="btn-check" style="width:100%;margin-top:14px" onclick="submitPasswordGate()">Sblocca</button>
+    <button class="btn-check" style="width:100%;margin-top:8px;background:transparent;color:var(--text2);border:1px solid #ddd" onclick="cancelPasswordGate()">Annulla</button>
   </div>
 </div>
 
@@ -176,6 +198,7 @@ body::after{ width:min(300px,60vw);height:min(300px,60vw); bottom:-80px;left:-60
     </div>
   </div>
   <button class="btn-back hidden" id="install-btn" onclick="installPwa()">⬇️ Installa app</button>
+  <a href="#" class="settings-link" id="settings-link" onclick="openConfigManually();return false">⚙</a>
 </div>
 
 <!-- Loading -->
@@ -213,16 +236,15 @@ body::after{ width:min(300px,60vw);height:min(300px,60vw); bottom:-80px;left:-60
   <button class="btn-back" onclick="goBack()">← Riprova</button>
 </div>
 
-<a href="#" class="settings-link" id="settings-link" onclick="openConfigManually();return false">⚙</a>
-
 <script>
 // ════════════════════════════════════════════════════════════
 //  CONFIGURAZIONE
 // ════════════════════════════════════════════════════════════
 const STORAGE_KEY = 'nfc_api_url';
+const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbxS2giZNqvfUil89QTTJERkB4HrpBWDEY518C85F5b8B3RM2aZuunP7p9UcN9VIGb81RQ/exec';
 
 function getApiUrl() {
-  return localStorage.getItem(STORAGE_KEY) || '';
+  return localStorage.getItem(STORAGE_KEY) || DEFAULT_API_URL;
 }
 
 function saveConfig() {
@@ -231,23 +253,104 @@ function saveConfig() {
   localStorage.setItem(STORAGE_KEY, url);
   showScreen('screen-tap');
   initNFCButton();
+  enableBackButtonTrap(); // da qui in poi, "indietro" richiede di nuovo la password
 }
 
 function openConfigManually() {
-  document.getElementById('cfg-url').value = getApiUrl();
-  showScreen('screen-config');
+  // L'icona ⚙ ora richiede sempre la password Admin prima di mostrare la
+  // configurazione: è il punto in cui un dispositivo "pubblico" potrebbe
+  // altrimenti essere riconfigurato o portato fuori dalla schermata saldo
+  // da chiunque, quindi va protetto.
+  requestPasswordGate(() => {
+    document.getElementById('cfg-url').value = getApiUrl();
+    document.getElementById('config-cancel-btn').classList.remove('hidden');
+    showScreen('screen-config');
+  });
 }
+
+function cancelConfig() {
+  showScreen('screen-tap');
+  enableBackButtonTrap();
+}
+
+// ── Gate password (blocco uscita dalla schermata saldo) ─────
+// Mostra il modal password; se la password è corretta, esegue onSuccess.
+// Riusa la stessa password dell'Admin (endpoint checkPassword condiviso).
+let passwordGateOnSuccess = null;
+
+function requestPasswordGate(onSuccess) {
+  passwordGateOnSuccess = onSuccess;
+  document.getElementById('password-gate-input').value = '';
+  document.getElementById('password-gate-error').style.display = 'none';
+  document.getElementById('password-gate-overlay').classList.remove('hidden');
+}
+
+async function submitPasswordGate() {
+  const pwd = document.getElementById('password-gate-input').value;
+  try {
+    const data = await callApi({ api: 'checkPassword', password: pwd });
+    if (data && data.success && data.ok) {
+      document.getElementById('password-gate-overlay').classList.add('hidden');
+      const cb = passwordGateOnSuccess;
+      passwordGateOnSuccess = null;
+      // Una volta sbloccato con la password, lasciamo che il prossimo
+      // "indietro" funzioni normalmente per quella singola azione in corso
+      // (es. aprire la configurazione): la trap viene poi ripristinata al
+      // ritorno sulla schermata saldo, vedi enableBackButtonTrap().
+      if (cb) cb();
+    } else {
+      document.getElementById('password-gate-error').style.display = 'block';
+    }
+  } catch (err) {
+    document.getElementById('password-gate-error').textContent = 'Errore di connessione.';
+    document.getElementById('password-gate-error').style.display = 'block';
+  }
+}
+
+function cancelPasswordGate() {
+  document.getElementById('password-gate-overlay').classList.add('hidden');
+  passwordGateOnSuccess = null;
+}
+
+document.getElementById('password-gate-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitPasswordGate();
+});
+
+// ── Blocco del tasto indietro ────────────────────────────────
+// Limite tecnico importante: nessuna pagina web può impedire in modo
+// assoluto che l'utente chiuda l'app, la rimuova dal multitasking, o
+// spenga lo schermo — questo non è ottenibile con tecnologie web. Quello
+// che possiamo fare è intercettare il tasto "indietro" del browser/
+// sistema operativo (gesto Android, freccia del browser) e, invece di
+// lasciar navigare fuori dalla pagina, mostrare il gate password.
+//
+// Tecnica: manteniamo sempre una voce extra nella cronologia di
+// navigazione (history.pushState). Quando l'utente preme "indietro",
+// il browser consuma quella voce invece di uscire dall'app, e noi
+// intercettiamo l'evento "popstate" per rimettere subito la voce extra
+// e mostrare il gate password.
+function enableBackButtonTrap() {
+  history.pushState({ nfcGate: true }, '');
+}
+
+window.addEventListener('popstate', () => {
+  // Ripristina immediatamente la "barriera" nella cronologia, così anche
+  // pressioni ripetute del tasto indietro restano bloccate qui.
+  history.pushState({ nfcGate: true }, '');
+  openConfigManually(); // stessa via di "uscita" protetta usata per l'icona ⚙
+});
 
 // ── Init ──────────────────────────────────────────────────
 let nfcReader = null;
 
 window.addEventListener('DOMContentLoaded', () => {
-  if (!getApiUrl()) {
-    showScreen('screen-config');
-  } else {
-    showScreen('screen-tap');
-    initNFCButton();
-  }
+  // getApiUrl() ora restituisce sempre un valore (al minimo il default
+  // preimpostato), quindi si va direttamente alla schermata tap.
+  // La screen-config si apre solo manualmente tramite l'icona ⚙ (protetta
+  // da password), non più automaticamente al primo avvio.
+  showScreen('screen-tap');
+  initNFCButton();
+  enableBackButtonTrap();
 });
 
 function initNFCButton() {
