@@ -376,9 +376,8 @@ canvas{max-width:100%;height:clamp(180px,50vw,220px)!important}
     <button class="btn btn-ghost btn-full hidden" id="install-btn" onclick="installPwa()" style="margin-top:12px">⬇️ Installa app</button>
     <a href="./public.html" class="btn btn-ghost btn-full" style="margin-top:12px;text-decoration:none">📡 Vai al saldo carte</a>
   </div>
+  <a href="#" class="settings-link" id="settings-link" onclick="showConfig();return false">⚙</a>
 </div>
-
-<a href="#" class="settings-link" id="settings-link" onclick="showConfig();return false">⚙</a>
 
 <!-- ── App ── -->
 <div id="app">
@@ -591,7 +590,8 @@ canvas{max-width:100%;height:clamp(180px,50vw,220px)!important}
 //  CONFIG: URL Apps Script (salvato in localStorage)
 // ════════════════════════════════════════════════════════════
 const STORAGE_URL_KEY = 'nfc_admin_api_url';
-let API_URL = localStorage.getItem(STORAGE_URL_KEY) || '';
+const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbxS2giZNqvfUil89QTTJERkB4HrpBWDEY518C85F5b8B3RM2aZuunP7p9UcN9VIGb81RQ/exec';
+let API_URL = localStorage.getItem(STORAGE_URL_KEY) || DEFAULT_API_URL;
 
 function showConfig() {
   document.getElementById('login-screen').style.display = 'none';
