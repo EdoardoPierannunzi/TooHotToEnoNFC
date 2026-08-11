@@ -359,6 +359,24 @@ canvas{max-width:100%;height:clamp(180px,50vw,220px)!important}
       <input type="text" id="api-url-input" placeholder="https://script.google.com/macros/s/.../exec" autocapitalize="off" autocorrect="off" spellcheck="false">
     </div>
     <button class="btn btn-primary btn-full" onclick="saveApiUrl()">Salva</button>
+    <button class="btn btn-ghost btn-full" onclick="cancelConfig()" style="margin-top:8px">Annulla</button>
+  </div>
+</div>
+
+<!-- Gate password per l'accesso alle impostazioni URL dalla schermata login.
+     Usa la stessa password dell'Admin (checkPassword sul backend). -->
+<div class="modal-overlay hidden" id="modal-config-gate">
+  <div class="modal">
+    <h2>🔒 Password richiesta</h2>
+    <p class="sub">Inserisci la password Admin per modificare le impostazioni.</p>
+    <div class="field" style="margin-top:16px">
+      <input type="password" id="config-gate-pwd" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <p id="config-gate-err" style="color:var(--danger);font-size:.78rem;display:none">Password errata.</p>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="submitConfigGate()" id="config-gate-btn">Sblocca</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-config-gate')">Annulla</button>
+    </div>
   </div>
 </div>
 
@@ -376,7 +394,7 @@ canvas{max-width:100%;height:clamp(180px,50vw,220px)!important}
     <button class="btn btn-ghost btn-full hidden" id="install-btn" onclick="installPwa()" style="margin-top:12px">⬇️ Installa app</button>
     <a href="./public.html" class="btn btn-ghost btn-full" style="margin-top:12px;text-decoration:none">📡 Vai al saldo carte</a>
   </div>
-  <a href="#" class="settings-link" id="settings-link" onclick="showConfig();return false">⚙</a>
+  <a href="#" class="settings-link" id="settings-link" onclick="showConfigGated();return false">⚙</a>
 </div>
 
 <!-- ── App ── -->
@@ -609,6 +627,42 @@ function saveApiUrl() {
   document.getElementById('login-screen').style.display = 'flex';
 }
 
+function cancelConfig() {
+  document.getElementById('config-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+// ── Gate password per impostazioni (icona ⚙ sulla schermata login) ──
+// Stessa password usata per il login admin — un'unica password per tutto.
+function showConfigGated() {
+  document.getElementById('config-gate-pwd').value = '';
+  document.getElementById('config-gate-err').style.display = 'none';
+  document.getElementById('modal-config-gate').classList.remove('hidden');
+}
+
+async function submitConfigGate() {
+  const pwd = document.getElementById('config-gate-pwd').value;
+  const btn = document.getElementById('config-gate-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="loader"></span>';
+  try {
+    const res = await api('checkPassword', { password: pwd });
+    if (res.success && res.ok) {
+      closeModal('modal-config-gate');
+      showConfig();
+    } else {
+      document.getElementById('config-gate-err').style.display = 'block';
+    }
+  } catch (err) {
+    document.getElementById('config-gate-err').textContent = 'Errore di connessione.';
+    document.getElementById('config-gate-err').style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = 'Sblocca';
+}
+
+document.getElementById('config-gate-pwd').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitConfigGate();
+});
+
 window.addEventListener('DOMContentLoaded', () => {
   if (!API_URL) { showConfig(); return; }
   // Se la sessione è già autenticata in questo browser (sessionStorage),
@@ -698,6 +752,8 @@ async function loadNoteSuggestions() {
 
 function logout() {
   sessionStorage.removeItem('nfc_admin_authed');
+  document.getElementById('pwd-input').value = '';
+  document.getElementById('login-err').style.display = 'none';
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   stopNFC();
